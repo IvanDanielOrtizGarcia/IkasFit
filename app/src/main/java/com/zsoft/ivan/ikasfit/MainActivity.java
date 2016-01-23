@@ -36,6 +36,11 @@ import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.request.DataDeleteRequest;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
+import com.parse.GetCallback;
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -62,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private float[] distancias;
     int year_step, month_step, week_step, day_step, average_step;
     float year_distance, month_distance, week_distance, day_distance, average_distance;
+    String gmail = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
         }
         AccountManager manager = (AccountManager) getSystemService(ACCOUNT_SERVICE);
         Account[] list = manager.getAccounts();
-        String gmail = null;
         for (Account account : list) {
             if (account.type.equalsIgnoreCase("com.google")) {
                 gmail = account.name;
@@ -107,6 +112,10 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+        // [Optional] Power your app with Local Datastore. For more info, go to
+        // https://parse.com/docs/android/guide#local-datastore
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this);
     }
 
     private void buildFitnessClient() {
@@ -467,7 +476,29 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "¡Carga primero los datos de Google Fit!",
                         Toast.LENGTH_LONG).show();
             } else {
-
+                ParseQuery<ParseObject> query = ParseQuery.getQuery("IkasFit");
+                query.whereEqualTo("account", gmail);
+                query.getFirstInBackground(new GetCallback<ParseObject>() {
+                    public void done(ParseObject object, ParseException e) {
+                        if (object == null) {
+                            Log.i(TAG, "Fist time uploading to parse, creating object.");
+                            object = new ParseObject("IkasFit");
+                        } else {
+                            Log.i(TAG, "User already exists in parse, updating object.");
+                        }
+                        object.put("account", gmail);
+                        object.put("year_step", year_step);
+                        object.put("month_step", month_step);
+                        object.put("week_step", week_step);
+                        object.put("average_step", average_step);
+                        object.put("year_distance", year_distance);
+                        object.put("month_distance", month_distance);
+                        object.put("week_distance", week_distance);
+                        object.put("average_distance", average_distance);
+                        object.saveInBackground();
+                        Log.i(TAG, "Steps and distance data uploaded to Parse");
+                    }
+                });
             }
         } else if (id == R.id.action_about) {
             AlertDialog.Builder adb = new AlertDialog.Builder(this);
