@@ -428,9 +428,9 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.action_delete_data) {
             if (connected_googlefit) {
-                AlertDialog.Builder adb = new AlertDialog.Builder(this);
+                AlertDialog.Builder adb = new AlertDialog.Builder(this,android.R.style.Theme_Dialog);
                 adb.setTitle("¡PELIGRO!");
-                adb.setMessage("¿Estás seguro de borrar de Google Fit para el año en curso?");
+                adb.setMessage("¿Estás seguro de borrar los datos de pasos y distancia de Google Fit para el año en curso?");
                 adb.setIcon(android.R.drawable.ic_dialog_alert);
                 adb.setPositiveButton("BORRAR", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -480,17 +480,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "¡Carga primero los datos de Google Fit!",
                         Toast.LENGTH_LONG).show();
             } else {
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                //params.put("movie", "The Matrix");
-                ParseCloud.callFunctionInBackground("hello", params, new FunctionCallback<String>() {
-                    public void done(String respuesta, ParseException e) {
-                        if (e == null) {
-                            Log.i(TAG,"Cloud code: " + respuesta);
-                        } else {
-                            Log.i(TAG,"Cloud code error: " + e.toString());
-                        }
-                    }
-                });
                 ParseQuery<ParseObject> query = ParseQuery.getQuery("IkasFit");
                 query.whereEqualTo("account", gmail);
                 query.getFirstInBackground(new GetCallback<ParseObject>() {
@@ -514,9 +503,21 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(TAG, "Steps and distance data uploaded to Parse");
                     }
                 });
+                HashMap<String, Object> params = new HashMap<String, Object>();
+                ParseCloud.callFunctionInBackground("total_users", params, new FunctionCallback<Integer>() {
+                    public void done(Integer respuesta, ParseException e) {
+                        if (e == null) {
+                            Log.i(TAG, "Cloud code - Total users: " + respuesta);
+                            TextView textView = (TextView) findViewById(R.id.textView_total_value);
+                            textView.setText(String.valueOf(respuesta));
+                        } else {
+                            Log.i(TAG, "Cloud code error: " + e.toString());
+                        }
+                    }
+                });
             }
         } else if (id == R.id.action_about) {
-            AlertDialog.Builder adb = new AlertDialog.Builder(this);
+            AlertDialog.Builder adb = new AlertDialog.Builder(this,android.R.style.Theme_Dialog);
             adb.setTitle("Acerca de");
             adb.setMessage("IKasFit v1.0\nProyecto fin de curso\nDesarrollo de Aplicaciones Multiplataforma\nEGIBIDE\nmotxuelodon@gmail.com");
             adb.setIcon(android.R.drawable.ic_dialog_info);
