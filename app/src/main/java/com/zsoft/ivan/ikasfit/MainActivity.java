@@ -43,6 +43,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -556,12 +557,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 googlefit_data_loaded = true;
+                DecimalFormat decimalFormat = new DecimalFormat("##,###,###");
                 year_step = 0;
                 for (int x = 0; x < pasos.length; x++) {
                     year_step += pasos[x];
                 }
                 TextView textView = (TextView) findViewById(R.id.textView_year_value_step);
-                textView.setText(String.valueOf(year_step));
+                textView.setText(decimalFormat.format(year_step));
                 Log.i(TAG, "Total steps this year: " + year_step + " (Days: " + pasos.length + ")");
                 Calendar cal = Calendar.getInstance();
                 Date now = new Date();
@@ -574,9 +576,12 @@ public class MainActivity extends AppCompatActivity {
                     y--;
                 }
                 textView = (TextView) findViewById(R.id.textView_month_value_step);
-                textView.setText(String.valueOf(month_step));
+                textView.setText(decimalFormat.format(month_step));
                 Log.i(TAG, "Total steps this month: " + month_step + " (Days: " + days_in_month + ")");
                 int days_in_week = cal.get(Calendar.DAY_OF_WEEK) - 1;
+                if(days_in_week==0){
+                    days_in_week=7;
+                }
                 week_step = 0;
                 y = pasos.length - 1;
                 for (int x = 1; x <= days_in_week; x++) {
@@ -584,22 +589,23 @@ public class MainActivity extends AppCompatActivity {
                     y--;
                 }
                 textView = (TextView) findViewById(R.id.textView_week_value_step);
-                textView.setText(String.valueOf(week_step));
+                textView.setText(decimalFormat.format(week_step));
                 Log.i(TAG, "Total steps this week: " + week_step + " (Days: " + days_in_week + ")");
                 day_step = pasos[pasos.length - 1];
                 textView = (TextView) findViewById(R.id.textView_day_value_step);
-                textView.setText(String.valueOf(day_step));
+                textView.setText(decimalFormat.format(day_step));
                 Log.i(TAG, "Total steps today: " + day_step);
                 average_step = year_step / pasos.length;
                 Log.i(TAG, "Average steps per day: " + average_step);
                 textView = (TextView) findViewById(R.id.textView_average_value_step);
-                textView.setText(String.valueOf(average_step));
+                textView.setText(decimalFormat.format(average_step));
+                decimalFormat = new DecimalFormat("##,###,###.00");
                 year_distance = 0;
                 for (int x = 0; x < distancias.length; x++) {
                     year_distance += distancias[x];
                 }
                 textView = (TextView) findViewById(R.id.textView_year_value_distance);
-                textView.setText(String.valueOf(year_distance));
+                textView.setText(decimalFormat.format(year_distance));
                 Log.i(TAG, "Total distance this year: " + year_step + " (Days: " + distancias.length + ")");
                 month_distance = 0;
                 y = distancias.length - 1;
@@ -608,7 +614,7 @@ public class MainActivity extends AppCompatActivity {
                     y--;
                 }
                 textView = (TextView) findViewById(R.id.textView_month_value_distance);
-                textView.setText(String.valueOf(month_distance));
+                textView.setText(decimalFormat.format(month_distance));
                 Log.i(TAG, "Total distance this month: " + month_distance + " (Days: " + days_in_month + ")");
                 week_distance = 0;
                 y = distancias.length - 1;
@@ -617,16 +623,16 @@ public class MainActivity extends AppCompatActivity {
                     y--;
                 }
                 textView = (TextView) findViewById(R.id.textView_week_value_distance);
-                textView.setText(String.valueOf(week_distance));
+                textView.setText(decimalFormat.format(week_distance));
                 Log.i(TAG, "Total distance this week: " + week_distance + " (Days: " + days_in_week + ")");
                 day_distance = distancias[distancias.length - 1];
                 textView = (TextView) findViewById(R.id.textView_day_value_distance);
-                textView.setText(String.valueOf(day_distance));
+                textView.setText(decimalFormat.format(day_distance));
                 Log.i(TAG, "Total distance today: " + day_distance);
                 average_distance = year_distance / distancias.length;
                 Log.i(TAG, "Average distance per day: " + average_distance);
                 textView = (TextView) findViewById(R.id.textView_average_value_distance);
-                textView.setText(String.valueOf(average_distance));
+                textView.setText(decimalFormat.format(average_distance));
             }
         });
     }

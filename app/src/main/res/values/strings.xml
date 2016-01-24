@@ -16,9 +16,9 @@
     <string name="unknown">-----</string>
     <string name="Account_Image">Account Icon</string>
     <string name="steps">●pasos</string>
-    <string name="distance">●distancia</string>
+    <string name="distance">●distancia(m)</string>
     <string name="ranking">Tu posición:</string>
     <string name="number1">Primera posición:</string>
-    <string name="total">Nº de participantes:</string>
+    <string name="total">Nº usuarios:</string>
 </resources>
 
