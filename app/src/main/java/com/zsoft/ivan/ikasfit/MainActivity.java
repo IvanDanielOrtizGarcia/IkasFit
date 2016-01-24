@@ -4,6 +4,8 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -58,8 +60,6 @@ import static java.text.DateFormat.getDateTimeInstance;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "IkasFit";
-    private static final int REQUEST_OAUTH = 1;
-    private static final String DATE_FORMAT = "yyyy.MM.dd HH:mm:ss";
     private boolean connected_googlefit = false;
     private boolean googlefit_data_loaded = false;
     private boolean connected_parse = false;
@@ -526,6 +526,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             adb.show();
+        } else if(id == R.id.action_www){
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://ikasfit-zsoft.parseapp.com"));
+            startActivity(browserIntent);
         }
         return super.onOptionsItemSelected(item);
     }
