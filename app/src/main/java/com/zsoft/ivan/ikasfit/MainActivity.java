@@ -428,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.action_delete_data) {
             if (connected_googlefit) {
-                AlertDialog.Builder adb = new AlertDialog.Builder(this,android.R.style.Theme_Dialog);
+                AlertDialog.Builder adb = new AlertDialog.Builder(this, android.R.style.Theme_Dialog);
                 adb.setTitle("¡PELIGRO!");
                 adb.setMessage("¿Estás seguro de borrar los datos de pasos y distancia de Google Fit para el año en curso?");
                 adb.setIcon(android.R.drawable.ic_dialog_alert);
@@ -527,11 +527,24 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+                params = new HashMap<String, Object>();
+                params.put("account", gmail);
+                ParseCloud.callFunctionInBackground("ranking", params, new FunctionCallback<Integer>() {
+                    public void done(Integer respuesta, ParseException e) {
+                        if (e == null) {
+                            Log.i(TAG, "Cloud code - Your ranking; " + respuesta);
+                            TextView textView = (TextView) findViewById(R.id.textView_ranking_value);
+                            textView.setText(String.valueOf(respuesta) + "º");
+                        } else {
+                            Log.i(TAG, "Cloud code error: " + e.toString());
+                        }
+                    }
+                });
             }
         } else if (id == R.id.action_about) {
-            AlertDialog.Builder adb = new AlertDialog.Builder(this,android.R.style.Theme_Dialog);
+            AlertDialog.Builder adb = new AlertDialog.Builder(this, android.R.style.Theme_Dialog);
             adb.setTitle("Acerca de");
-            adb.setMessage("IKasFit v1.0\nProyecto fin de curso\nDesarrollo de Aplicaciones Multiplataforma\nEGIBIDE\nmotxuelodon@gmail.com");
+            adb.setMessage("IKasFit v1.0\nProyecto fin de curso\nDesarrollo de Aplicaciones Multiplataforma\nEGIBIDE\nmotxuelodon@gmail.com\n\nAndroidStudio NetBeans Parse.com CanvasJS GitHub");
             adb.setIcon(android.R.drawable.ic_dialog_info);
             adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
@@ -539,7 +552,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             adb.show();
-        } else if(id == R.id.action_www){
+        } else if (id == R.id.action_www) {
+            Log.i(TAG, "Opening 'http://ikasfit-zsoft.parseapp.com' on default web browser");
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://ikasfit-zsoft.parseapp.com"));
             startActivity(browserIntent);
         }
@@ -609,8 +623,8 @@ public class MainActivity extends AppCompatActivity {
                 textView.setText(decimalFormat.format(month_step));
                 Log.i(TAG, "Total steps this month: " + month_step + " (Days: " + days_in_month + ")");
                 int days_in_week = cal.get(Calendar.DAY_OF_WEEK) - 1;
-                if(days_in_week==0){
-                    days_in_week=7;
+                if (days_in_week == 0) {
+                    days_in_week = 7;
                 }
                 week_step = 0;
                 y = pasos.length - 1;
