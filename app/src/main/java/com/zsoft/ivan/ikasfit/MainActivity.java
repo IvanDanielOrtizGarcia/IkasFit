@@ -515,6 +515,18 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+                params = new HashMap<String, Object>();
+                ParseCloud.callFunctionInBackground("number1", params, new FunctionCallback<String>() {
+                    public void done(String respuesta, ParseException e) {
+                        if (e == null) {
+                            Log.i(TAG, "Cloud code - Number 1 user; " + respuesta);
+                            TextView textView = (TextView) findViewById(R.id.textView_number1_value);
+                            textView.setText(respuesta);
+                        } else {
+                            Log.i(TAG, "Cloud code error: " + e.toString());
+                        }
+                    }
+                });
             }
         } else if (id == R.id.action_about) {
             AlertDialog.Builder adb = new AlertDialog.Builder(this,android.R.style.Theme_Dialog);
