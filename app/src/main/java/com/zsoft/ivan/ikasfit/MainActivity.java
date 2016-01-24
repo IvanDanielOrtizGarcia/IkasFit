@@ -36,8 +36,10 @@ import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.request.DataDeleteRequest;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
+import com.parse.FunctionCallback;
 import com.parse.GetCallback;
 import com.parse.Parse;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -46,6 +48,7 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -477,6 +480,17 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "¡Carga primero los datos de Google Fit!",
                         Toast.LENGTH_LONG).show();
             } else {
+                HashMap<String, Object> params = new HashMap<String, Object>();
+                //params.put("movie", "The Matrix");
+                ParseCloud.callFunctionInBackground("hello", params, new FunctionCallback<String>() {
+                    public void done(String respuesta, ParseException e) {
+                        if (e == null) {
+                            Log.i(TAG,"Cloud code: " + respuesta);
+                        } else {
+                            Log.i(TAG,"Cloud code error: " + e.toString());
+                        }
+                    }
+                });
                 ParseQuery<ParseObject> query = ParseQuery.getQuery("IkasFit");
                 query.whereEqualTo("account", gmail);
                 query.getFirstInBackground(new GetCallback<ParseObject>() {
