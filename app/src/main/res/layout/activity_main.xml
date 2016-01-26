@@ -35,7 +35,8 @@
         android:layout_alignTop="@+id/title_text_view"
         android:contentDescription="@string/Account_Image"
         android:paddingRight="5dp"
-        android:src="@drawable/ic_account_circle_black_24dp" />
+        android:src="@drawable/ic_account_circle_black_24dp"
+        android:focusableInTouchMode="true" />
 
     <View
         android:layout_width="match_parent"

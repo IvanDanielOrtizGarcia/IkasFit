@@ -1,10 +1,10 @@
 package com.zsoft.ivan.ikasfit;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -16,6 +16,7 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -38,6 +39,8 @@ import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.request.DataDeleteRequest;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
+import com.google.android.gms.plus.Plus;
+import com.google.android.gms.plus.model.people.Person;
 import com.parse.FunctionCallback;
 import com.parse.GetCallback;
 import com.parse.Parse;
@@ -46,6 +49,7 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Calendar;
@@ -81,20 +85,11 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
         }
-        AccountManager manager = (AccountManager) getSystemService(ACCOUNT_SERVICE);
-        Account[] list = manager.getAccounts();
-        for (Account account : list) {
-            if (account.type.equalsIgnoreCase("com.google")) {
-                gmail = account.name;
-                break;
-            }
-        }
         ActionBar actionBar = getSupportActionBar();
         actionBar.setLogo(R.mipmap.ic_launcher);
         actionBar.setDisplayUseLogoEnabled(true);
         actionBar.setDisplayShowHomeEnabled(true);
-        TextView textView = (TextView) findViewById(R.id.title_text_view);
-        textView.setText(gmail);
+
         LogView logView = (LogView) findViewById(R.id.sample_logview);
         logView.addTextChangedListener(new TextWatcher() {
             @Override
@@ -123,14 +118,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void buildFitnessClient() {
+
         mClient = new GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
+                .addApi(Plus.API)
+                .addScope(new Scope(Scopes.PLUS_LOGIN))
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
                 .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
                 .addConnectionCallbacks(
                         new ConnectionCallbacks() {
                             @Override
                             public void onConnected(Bundle bundle) {
+                                Person person = Plus.PeopleApi.getCurrentPerson(mClient);
+                                ActionBar actionBar = getSupportActionBar();
+                                actionBar.setSubtitle(person.getDisplayName());
+                                String photo_url = person.getImage().getUrl();
+                                photo_url = photo_url.substring(0, photo_url.length() - 2) + "100";
+                                new LoadProfileImage((ImageView) findViewById(R.id.image_Acount)).execute(photo_url);
+                                gmail = Plus.AccountApi.getAccountName(mClient);
+                                TextView textView = (TextView) findViewById(R.id.title_text_view);
+                                textView.setText(gmail);
                                 Log.i(TAG, "Connected to Google Fit!!!");
                                 connected_googlefit = true;
                                 new DataRequester().execute();
@@ -152,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onConnectionFailed(ConnectionResult result) {
                         empty_fields();
+                        connected_googlefit = false;
                         Log.i(TAG, "Google Play services connection failed. Cause: " +
                                 result.toString());
                         Snackbar.make(
@@ -162,6 +170,31 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .build();
+    }
+
+    private class LoadProfileImage extends AsyncTask<String, Void, Bitmap> {
+        ImageView profile_photo;
+
+        public LoadProfileImage(ImageView profile_photo) {
+            this.profile_photo = profile_photo;
+        }
+
+        protected Bitmap doInBackground(String... urls) {
+            String urldisplay = urls[0];
+            Bitmap photo = null;
+            try {
+                InputStream in = new java.net.URL(urldisplay).openStream();
+                photo = BitmapFactory.decodeStream(in);
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+                e.printStackTrace();
+            }
+            return photo;
+        }
+
+        protected void onPostExecute(Bitmap result) {
+            profile_photo.setImageBitmap(result);
+        }
     }
 
     private class DataInserter extends AsyncTask<Void, Void, Void> {
@@ -501,45 +534,46 @@ public class MainActivity extends AppCompatActivity {
                         object.put("average_distance", average_distance);
                         object.saveInBackground();
                         Log.i(TAG, "Steps and distance data uploaded to Parse");
+                        HashMap<String, Object> params = new HashMap<String, Object>();
+                        ParseCloud.callFunctionInBackground("total_users", params, new FunctionCallback<Integer>() {
+                            public void done(Integer respuesta, ParseException e) {
+                                if (e == null) {
+                                    Log.i(TAG, "Cloud code - Total users: " + respuesta);
+                                    TextView textView = (TextView) findViewById(R.id.textView_total_value);
+                                    textView.setText(String.valueOf(respuesta));
+                                } else {
+                                    Log.i(TAG, "Cloud code error: " + e.toString());
+                                }
+                            }
+                        });
+                        params = new HashMap<String, Object>();
+                        ParseCloud.callFunctionInBackground("number1", params, new FunctionCallback<String>() {
+                            public void done(String respuesta, ParseException e) {
+                                if (e == null) {
+                                    Log.i(TAG, "Cloud code - Number 1 user; " + respuesta);
+                                    TextView textView = (TextView) findViewById(R.id.textView_number1_value);
+                                    textView.setText(respuesta);
+                                } else {
+                                    Log.i(TAG, "Cloud code error: " + e.toString());
+                                }
+                            }
+                        });
+                        params = new HashMap<String, Object>();
+                        params.put("account", gmail);
+                        ParseCloud.callFunctionInBackground("ranking", params, new FunctionCallback<Integer>() {
+                            public void done(Integer respuesta, ParseException e) {
+                                if (e == null) {
+                                    Log.i(TAG, "Cloud code - Your ranking; " + respuesta);
+                                    TextView textView = (TextView) findViewById(R.id.textView_ranking_value);
+                                    textView.setText(String.valueOf(respuesta) + "º");
+                                } else {
+                                    Log.i(TAG, "Cloud code error: " + e.toString());
+                                }
+                            }
+                        });
                     }
                 });
-                HashMap<String, Object> params = new HashMap<String, Object>();
-                ParseCloud.callFunctionInBackground("total_users", params, new FunctionCallback<Integer>() {
-                    public void done(Integer respuesta, ParseException e) {
-                        if (e == null) {
-                            Log.i(TAG, "Cloud code - Total users: " + respuesta);
-                            TextView textView = (TextView) findViewById(R.id.textView_total_value);
-                            textView.setText(String.valueOf(respuesta));
-                        } else {
-                            Log.i(TAG, "Cloud code error: " + e.toString());
-                        }
-                    }
-                });
-                params = new HashMap<String, Object>();
-                ParseCloud.callFunctionInBackground("number1", params, new FunctionCallback<String>() {
-                    public void done(String respuesta, ParseException e) {
-                        if (e == null) {
-                            Log.i(TAG, "Cloud code - Number 1 user; " + respuesta);
-                            TextView textView = (TextView) findViewById(R.id.textView_number1_value);
-                            textView.setText(respuesta);
-                        } else {
-                            Log.i(TAG, "Cloud code error: " + e.toString());
-                        }
-                    }
-                });
-                params = new HashMap<String, Object>();
-                params.put("account", gmail);
-                ParseCloud.callFunctionInBackground("ranking", params, new FunctionCallback<Integer>() {
-                    public void done(Integer respuesta, ParseException e) {
-                        if (e == null) {
-                            Log.i(TAG, "Cloud code - Your ranking; " + respuesta);
-                            TextView textView = (TextView) findViewById(R.id.textView_ranking_value);
-                            textView.setText(String.valueOf(respuesta) + "º");
-                        } else {
-                            Log.i(TAG, "Cloud code error: " + e.toString());
-                        }
-                    }
-                });
+
             }
         } else if (id == R.id.action_about) {
             AlertDialog.Builder adb = new AlertDialog.Builder(this, android.R.style.Theme_Dialog);
